@@ -37,7 +37,7 @@ public class Main {
     }
 
     private void collectStatements() {
-        List<ArtifactBase> artifacts = repositoryClient.search(null, null, null, 0, 10000);
+        List<ArtifactBase> artifacts = repositoryClient.search(null, null, null, 0,  10000);
         for (ArtifactBase au : artifacts) {
             ArtifactBase a = repositoryClient.getArtifact(au.get_uuid().toString());
             for (Relation r : a.getRelations()) {
