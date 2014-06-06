@@ -33,7 +33,7 @@ public class OpenRdfTest {
                     new HTTPRepository(endpointURL, "");
             dbpediaEndpoint.initialize();
 
-            RepositoryConnection conn =
+            RepositoryConnection     conn =
                     dbpediaEndpoint.getConnection();
             try {
                 TupleQuery query = conn.prepareTupleQuery(org.openrdf.query.QueryLanguage.SPARQL, spql1);
