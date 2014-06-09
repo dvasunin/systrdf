@@ -10,6 +10,7 @@
     <orderEntry type="library" name="syst-client" level="project" />
     <orderEntry type="library" name="org.openrdf.sesame:sesame-repository-http:2.7.11" level="project" />
     <orderEntry type="library" name="org.openrdf.sesame:sesame-repository-sparql:2.7.11" level="project" />
+    <orderEntry type="library" name="org.openrdf.sesame:sesame-rio-rdfxml:2.7.11" level="project" />
   </component>
 </module>
 

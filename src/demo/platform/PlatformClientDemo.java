@@ -18,6 +18,8 @@ import com.hp.systinet.repository.remote.client.security.ArtifactSecurity;
 import com.hp.systinet.repository.remote.client.security.Principal;
 import com.hp.systinet.repository.remote.client.security.Role;
 import com.hp.systinet.repository.remote.client.security.Right;
+import com.hp.systinet.repository.structures.ArtifactPartSelector;
+import com.hp.systinet.repository.util.PropertyFilters;
 import org.apache.commons.collections.map.MultiValueMap;
 
 /**
@@ -52,7 +54,7 @@ public class PlatformClientDemo {
      */
     public static void main(String[] args) throws Exception {
         initialize();
-        enumerateArtifacts();
+        //enumerateArtifacts();
         //enumerateArtifactProperties("businessServiceArtifact");
         //createSearchDelete();
         //createGetUpdateDelete();
@@ -68,26 +70,25 @@ public class PlatformClientDemo {
     }
 
 
-    /**
-     * Uses REST client introspection to enumerate artifact types.
-     */   	
     public static void enumerateArtifacts() {
         System.out.println("\n=== enumerateArtifacts ===");
         // enumerating all artifacts
-        List<ArtifactDescriptor> artifactDescriptors = 
-            repositoryClient.getArtifactRegistry().enumerateArtifactDescriptors();
-        List<String> artifactTypes = new ArrayList<String>(artifactDescriptors.size()); 
+        List<ArtifactDescriptor> artifactDescriptors =
+                repositoryClient.getArtifactRegistry().enumerateArtifactDescriptors();
+        List<String> artifactTypes = new ArrayList<String>(artifactDescriptors.size());
         for (ArtifactDescriptor artifactDescriptor : artifactDescriptors) {
             artifactTypes.add(artifactDescriptor.getSdmName());
         }
         // sort and print the output
-        String[] sorted = artifactTypes.toArray(new String[artifactTypes.size()]); 
+        String[] sorted = artifactTypes.toArray(new String[artifactTypes.size()]);
         Arrays.sort(sorted);
         System.out.println("There are following artifact types: ");
         for (String s : sorted) {
             System.out.println("   "+s);
+            enumerateArtifactProperties(s);
         }
     }
+
     /**
      * Uses REST client introspection to enumerate properties 
      * of an artifact type specified.
@@ -293,18 +294,18 @@ public class PlatformClientDemo {
 
     private static void myArtifactTest() {
 
-        Map<String, List<Pair<String, String>>> target = new HashMap<>();
-        Map<String, List<Pair<String, String>>> source = new HashMap<>();
+//        Map<String, List<Pair<String, String>>> target = new HashMap<>();
+//        Map<String, List<Pair<String, String>>> source = new HashMap<>();
 
 
         //List<ArtifactBase> artifacts=repositoryClient.search(null, null, null ,0,0);
-        //ArtifactBase a = repositoryClient.getArtifact("be247a9a-d614-4ddc-9c26-a514b1d52042");
-        System.out.println("Search returned the following artifacts:");
+        ArtifactBase a = repositoryClient.getArtifact("be247a9a-d614-4ddc-9c26-a514b1d52042");
+        //System.out.println("Search returned the following artifacts:");
         //List<Pair<String, String>> searchCriteria=new ArrayList<Pair<String,String>>();
         //searchCriteria.add(new Pair<String, String>("_path","*"));
-        List<ArtifactBase> artifacts=repositoryClient.search(null, null, null ,0,10000);
-        for (ArtifactBase au : artifacts) {
-            ArtifactBase a = repositoryClient.getArtifact(au.get_uuid().toString());
+        //List<ArtifactBase> artifacts=repositoryClient.search(null, null, null ,0,10000);
+        //for (ArtifactBase au : artifacts) {
+        //  ArtifactBase a = repositoryClient.getArtifact(au.get_uuid().toString());
 //            System.out.println("############# " + a.getName() + "(" + a.get_uuid() + ") ######################");
 //            System.out.println("\t" + a.getArtifactDescriptor().getSdmName());
 //            System.out.println("\t" + a.getDescription());
@@ -312,35 +313,51 @@ public class PlatformClientDemo {
 //            for(PropertyDescriptor pd : a.getArtifactDescriptor().enumerateCategories()) {
 //                System.out.println("\t\t" + pd.getTaxonomyUri() + "\t" + pd.getSdmName());
 //            }
-            for(Relation r : a.getRelations()){
-                if(r.isOutgoing()) {
-                    List<Pair<String, String>> po = null;
-                    if((po = target.get(a.get_uuid().toString())) == null) {
-                        po = new ArrayList<>();
-                        target.put(a.get_uuid().toString(), po);
-                    }
-                    po.add(new Pair<String, String>(r.getName(), r.getTargetId().toString()));
-                }
+//            for(Relation r : a.getRelations()){
+//                if(r.isOutgoing()) {
+//                    List<Pair<String, String>> po = null;
+//                    if((po = target.get(a.get_uuid().toString())) == null) {
+//                        po = new ArrayList<>();
+//                        target.put(a.get_uuid().toString(), po);
+//                    }
+//                    po.add(new Pair<String, String>(r.getName(), r.getTargetId().toString()));
+//                }
 //                if(r.isIncoming()) {
 //                    source.put(a.get_uuid().toString(),new Pair<String, String>(r.getName(), r.getSourceId().toString()));
 //                }
+//            }
+//
+            enumerateArtifactProperties(a.get_artifactSdmName());
+        System.out.println("==========================================================");
+        for(PropertyDescriptor pd : a.getArtifactDescriptor().enumerateProperties()){
+            if (!pd.isRelationship()) {
+                System.out.println(pd.getSdmName() + "\t" + pd.getPropertyTypeDescriptor().getPropertyTypeClass().getSimpleName());
+                if(pd.getPropertyCardinality().isMultiple()){
+                    for(SinglePropertyValue sp : a.getMultiProperty(pd.getSdmName())){
+                        System.out.println("\t" + sp.getValue());
+                    }
+                } else {
+                   System.out.println("\t" +  a.getProperty(pd.getSdmName()));
+                }
             }
-//            System.out.println("==========================================================");
-//            a.foreachProperty(null, new com.hp.systinet.lang.ExecutableParametrized<java.lang.Void,com.hp.systinet.repository.sdm.properties.SinglePropertyValue> () {
-//                @Override
-//                public Void execute(SinglePropertyValue sv) {
-//                    System.out.println(sv.getValue());
-//                    return null;
-//                }
-//            });
-//            System.out.println("==========================================================");
         }
-        for(String uid : target.keySet()) {
-            System.out.println(uid);
-            for(Pair<String, String> p : target.get(uid)){
-                System.out.println("\t" + p.getFirst() + "\t" + p.getSecond());
-            };
-        }
+        System.out.println("========================================");
+            a.foreachProperty(PropertyFilters.createFilter(a.getArtifactDescriptor(), ArtifactPartSelector.NO_RELATIONS),
+                    new com.hp.systinet.lang.ExecutableParametrized<java.lang.Void,com.hp.systinet.repository.sdm.properties.SinglePropertyValue> () {
+                @Override
+                public Void execute(SinglePropertyValue sv) {
+                    System.out.println(sv.getValue());
+                    return null;
+                }
+            });
+//            System.out.println("==========================================================");
+//        }
+//        for(String uid : target.keySet()) {
+//            System.out.println(uid);
+//            for(Pair<String, String> p : target.get(uid)){
+//                System.out.println("\t" + p.getFirst() + "\t" + p.getSecond());
+//            };
+//        }
 
     }
 
